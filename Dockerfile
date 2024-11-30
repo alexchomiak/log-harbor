@@ -14,7 +14,7 @@ COPY ./backend /var/log-harbor/backend
 # * Build Backend
 WORKDIR /var/log-harbor/backend
 RUN go install
-RUN go build -o log-harbor
+RUN go build -ldflags "-s -w" -o log-harbor
 
 # * Main Image Build Stage
 FROM scratch
