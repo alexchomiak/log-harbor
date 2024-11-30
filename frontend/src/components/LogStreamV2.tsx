@@ -10,6 +10,7 @@ interface LogStreamProps {
   buffer: any
 }
 import { VList } from "virtua";
+import useStateRef from "react-usestateref";
 
 
 
@@ -55,6 +56,8 @@ function extractInternalFieldsFromQueryString(str: string) {
   return tokens.join("")
 }
 
+let lastScroll = 0
+let positiveInARow = 0
 export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) {
 
   const buffer = props.buffer.sort((a: any, b: any) => {
@@ -62,17 +65,18 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
   })
   const tailRef = useRef<any>(null);
   const boxRef = useRef<any>(null);
-  const [showTailPrompt, setShowTailPrompt] = useState(true)
-  const [scrolling, setScrolling] = useState(false)
-
+  const parentRef = useRef<any>(null);
+  const [tailLogs, setTailLogs ] = useState(false)
+  
   let queriedBuffer = buffer
   useEffect(() => {
-    if(!showTailPrompt && !scrolling) {
+
+    if(tailLogs) {
       boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
   }, [buffer])
 
-  if (props.filterType == "sql") {
+  if (props.filterType == "sql" && props.filterExpression.length > 0) {
     try {
       console.log(extractInternalFieldsFromQueryString(props.filterExpression))
       const res = alasql(extractInternalFieldsFromQueryString(props.filterExpression), [buffer])
@@ -93,31 +97,38 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
   return (
     <div>
-      <div style={{ "position": "absolute", "width": showTailPrompt ? "90%" : "0px","opacity":  showTailPrompt ? "1" : "0" ,bottom: "1rem", "transition": "all ease-in-out 500ms","transform": "translate(-50%,0%)", "left": "50%", "zIndex": "100" }}>
+      <div style={{ "position": "absolute", "width": !tailLogs ? "90%" : "0px","opacity":  !tailLogs ? "1" : "0" ,bottom: "1rem", "transition": "all ease-in-out 500ms","transform": "translate(-50%,0%)", "left": "50%", "zIndex": "100" }}>
         <Button onClick={() => {
           let smooth = false
           if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 5 * boxRef.current.viewportSize) {
             smooth = true
           }
-          console.log(boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth} ))
-
+          boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth} )
+          setTailLogs(true)
+          lastScroll = boxRef.current.scrollSize
         }} colorPalette={"purple"} variant={"surface"}  width={"100%"}>⬇️ Tail logs</Button>
       </div>
       {buffer.length == 0 && <Float style={{width: "15rem"}} placement={"middle-center"}>
         <Box style={{ "textAlign": "center", width: "15rem" }}><Spinner/></Box>
         </Float>}
 
-      <div className="logStreamV2">
+      <div className="logStreamV2" ref={parentRef}>
 
-        <VList ref={boxRef} onScrollEnd={() => {
-          if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 10) {
-            setShowTailPrompt(false)
+        <VList ref={boxRef} onScroll={(_) => {
+          if(tailLogs && lastScroll - boxRef.current.scrollOffset > 0) {
+            positiveInARow += 1
+            // setTailLogs(false)
           } else {
-            setShowTailPrompt(true)
+            positiveInARow = 0
           }
-          setScrolling(false)
-        }} onScroll={(_) => {
-          setScrolling(true)
+
+          // * Really hacky way to detect if the user has scrolled up
+          // * Since we cannot differentiate between user scroll and programmatic scroll
+          if(positiveInARow > 8) {
+            setTailLogs(false)
+          }
+          
+          lastScroll = boxRef.current.scrollOffset
         }}>
         {queriedBuffer.map((log: any, index: number) => (
           <LogLine key={index} log={log} />

@@ -52,7 +52,6 @@ export function StreamView(props: StreamViewProps) {
             const event = JSON.parse(data);
             if(event.type == "update") {
                 const { values } = event
-                console.log(values)
                 setBuffer([...ref.current, ...values])
             }
         }
