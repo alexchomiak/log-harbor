@@ -1,10 +1,11 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useRef } from "react";
 import useWebSocket from "react-use-websocket";
 import { LogLine } from "./LogLine";
-import { Box } from "@chakra-ui/react";
+import { Box, Button, Float } from "@chakra-ui/react";
 import alasql from "alasql";
+import { internalFieldKey } from "./provider/ContainerLogProvider";
+import useStateRef from "react-usestateref";
 interface LogStreamProps {
-  container: any;
   windowSize?: number;
   filterType: "text" | "sql";
   filterExpression: string
@@ -14,7 +15,6 @@ interface LogStreamProps {
 }
 
 
-export const internalFieldKey = "ui_internal_field_"
 
 function extractInternalFieldsFromQueryString(str: string) {
   // Using a for loop
@@ -32,16 +32,16 @@ function extractInternalFieldsFromQueryString(str: string) {
         escapeQueue.pop()
       }
     })
-   
-    if(escapeQueue.length == 0 && char == "@") {
+
+    if (escapeQueue.length == 0 && char == "@") {
       let j = i + 1
       let field = ""
-      while(j < str.length && str[j] != " " && str[j] != "\n") {
+      while (j < str.length && str[j] != " " && str[j] != "\n") {
         field += str[j]
         j++
       }
 
-      if(field == "stream") {
+      if (field == "stream") {
         tokens.push("?")
       } else {
         tokens.push(internalFieldKey + field)
@@ -58,56 +58,34 @@ function extractInternalFieldsFromQueryString(str: string) {
 }
 
 export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) {
-  const { container } = props;
-  const containerId = container.Id;
-  const {buffer, setBuffer, bufferRef} = props
-  const ref = bufferRef
-  
 
-  const host = import.meta.env.MODE == "development" ? "localhost:3000" : window.location.host
-  const socketUrl = `ws://${host}/ws/logs/` + containerId;
-  console.log(socketUrl)
+  const { buffer } = props
+  const tailRef = useRef<any>(null);
+  const boxRef = useRef<any>(null);
+  const [showTailPrompt, setShowTailPrompt, tailPromptRef] = useStateRef(false)
 
-  const { sendMessage, readyState } = useWebSocket(socketUrl, {
-    onClose: () => {
-    },
-    onMessage: (m) => {
-      setBuffer(() => {
-        let fields = {}
-        try {
-          fields = JSON.parse(m.data)
-        } catch (e) {}
-
-        const logKey = `${internalFieldKey}log`
-        const ingestionKey = `${internalFieldKey}ingestionTime`
-        const containerFields: any = {
-          [`${internalFieldKey}containerId`]: containerId,
-          [`${internalFieldKey}containerName`]: container.Name,
-          [`${internalFieldKey}containerImage`]: container.Config.Image,
-        }
-        
-        const buf = [...ref.current, { [logKey]: m.data, [ingestionKey]: new Date(), ...containerFields, ...fields }];
-        return buf
-      });
-    },
-  });
-
+  let queriedBuffer = buffer
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (readyState == 1) {
-        sendMessage(JSON.stringify({ interval: 5 }));
-      } 
-    }, 1000);
+    if(!showTailPrompt) {
+      tailRef.current.scrollIntoView();
+    }
+    const scrollEventHandler = () => {
+      // console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
+      if (tailPromptRef.current != null && tailPromptRef.current == false && boxRef.current.scrollHeight != boxRef.current.scrollTop + boxRef.current.clientHeight) {
+        setShowTailPrompt(true)
+      }
+
+      if (tailPromptRef.current != null && tailPromptRef.current == true && boxRef.current.scrollHeight <= boxRef.current.scrollTop + boxRef.current.clientHeight) {
+        setShowTailPrompt(false)
+      }
+    }
+    boxRef.current.addEventListener("scroll", scrollEventHandler);
     return () => {
-      clearInterval(interval);
-    };
-  }, [readyState]);
+      boxRef.current.removeEventListener("scroll", scrollEventHandler);
+    }
+  }, [buffer])
 
-
- 
-  let queriedBuffer = buffer 
-
-  if(props.filterType == "sql") {
+  if (props.filterType == "sql") {
     try {
       console.log(extractInternalFieldsFromQueryString(props.filterExpression))
       const res = alasql(extractInternalFieldsFromQueryString(props.filterExpression), [buffer])
@@ -120,11 +98,24 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     queriedBuffer = buffer.filter((m: any) => m[`${internalFieldKey}log`].includes(props.filterExpression))
   }
 
+
   return (
-    <Box>
-      {queriedBuffer.map((log: any, index: number) => (
-        <LogLine key={index} log={log} container={container} />
-      ))}
-    </Box>
+    <div>
+      <div style={{ "position": "absolute", "opacity":  showTailPrompt ? "1" : "0" ,bottom: "1rem", "transition": "opacity ease-in-out 250ms","transform": "translate(-50%,0%)", "left": "50%", "width": "90%" }}>
+        <Button onClick={() => {
+          tailRef.current.scrollIntoView({ behavior: "smooth" });
+
+        }} colorPalette={"purple"} variant={"surface"}  width={"100%"}>⬇️ Tail logs</Button>
+      </div>
+      
+      <div className="logStreamV2" ref={boxRef}>
+
+        {queriedBuffer.map((log: any, index: number) => (
+          <LogLine key={index} log={log} />
+        ))}
+        <div ref={tailRef} />
+      </div>
+    </div>
+
   );
 })

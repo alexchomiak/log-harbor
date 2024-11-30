@@ -49,7 +49,7 @@
     max-height: var(--sidebarinfo-height);
 }
 .containerList {
-    overflow-y: scroll !important;
+    overflow-y: auto !important;
     min-height: calc(100vh - var(--sidebarinfo-height) - var(--footer-height));
     max-height: calc(100vh - var(--sidebarinfo-height) - var(--footer-height));
 

@@ -4,15 +4,17 @@ import "./LogStreamV2.css";
 import AceEditor from "react-ace"
 import { useEffect, useRef, useState } from "react";
 import useStateRef from "react-usestateref";
+import { LogProvider } from "./provider/LogProvider";
+import { containerLogProvider, internalFieldKey } from "./provider/ContainerLogProvider";
 
 
-interface ContainerViewProps {
-    container: any;
+interface StreamViewProps {
+    containers: any[];
 }
 
 
-export function ContainerView(props: ContainerViewProps) {
-    const { container } = props;
+export function StreamView(props: StreamViewProps) {
+    const { containers } = props;
 
 
     const [filterOpen, setFilterOpen] = useState(false)
@@ -20,19 +22,26 @@ export function ContainerView(props: ContainerViewProps) {
     const [filterExpression, setFilterExpression] = useState("")
     const [editorText, setEditorText] = useState("")
     const editorRef = useRef<any>(null)
+
     useEffect(() => {
         if (editorText.length == 0) {
             setFilterExpression("")
         }
     }, [editorText])
 
-
-
-
     const [buffer, setBuffer, ref] = useStateRef<any>([]);
     useEffect(() => {
+        const providers = containers.map((container) => {
+            return containerLogProvider(container, setBuffer, ref)
+        });
         setBuffer([])
-    }, [container])
+
+        return () => {
+            providers.forEach((provider: LogProvider) => {
+                provider.cleanup()
+            })
+        }
+    }, [containers])
 
 
     useEffect(() => {
@@ -55,7 +64,6 @@ export function ContainerView(props: ContainerViewProps) {
         }
     }, [filterOpen])
 
-    console.log("Container", container.State.Running)
 
     return <div onKeyDownCapture={(e) => {
         console.log(e)
@@ -63,10 +71,10 @@ export function ContainerView(props: ContainerViewProps) {
         <Box className="containerInfo" position={"relative"}>
             <Flex gap={5} justify={"flex-start"} height={"3rem"}>
                 <Flex direction={"column"} justify={"center"} height={"100%"}>
-                    <Code fontSize={"1rem"} fontWeight={900}> 🏷️ {container.Name}</Code>
+                    <Code style={{"color": containers[0].color}} fontSize={"1rem"} fontWeight={900}> 🏷️ {containers[0].Name}</Code>
                 </Flex>
                 <Flex direction={"column"} justify={"center"} height={"100%"}>
-                    <Code colorPalette={"purple"} fontSize={"rem"} fontWeight={500}>🌠 {container.Config.Image}</Code>
+                    <Code colorPalette={"purple"} fontSize={"rem"} fontWeight={500}>🌠 {containers[0].Config.Image}</Code>
                 </Flex>
             </Flex>
             <div
@@ -167,8 +175,8 @@ export function ContainerView(props: ContainerViewProps) {
 
         </Box>
 
-        <Box position={"relative"} className="logStreamV2">
-            <LogStreamV2 buffer={buffer} setBuffer={setBuffer} bufferRef={ref} filterExpression={filterExpression} filterType={filterType} container={container} />
+        <Box position={"relative"} style={{"overflow": "hidden"}}>
+            <LogStreamV2 buffer={buffer} setBuffer={setBuffer} bufferRef={ref} filterExpression={filterExpression} filterType={filterType}/>
         </Box>
     </Box>
     </div>

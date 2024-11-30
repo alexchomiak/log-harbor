@@ -1,42 +1,42 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { Box, Button, Flex } from "@chakra-ui/react";
-import { ContainerView } from "./components/ContainerView";
+import { Box, Button, Code, Flex, Separator } from "@chakra-ui/react";
+import { StreamView } from "./components/StreamView";
 import useStateRef from "react-usestateref";
+import { hashStringToColor } from "./util/color";
 function App() {
   const [containers, setContainers] = useState([] as any);
-  const [_, setIndex, indexRef] = useStateRef(-1);
   const [container, setContainer, containerRef] = useStateRef<any | null>(null);
 
   useEffect(() => {
     if (JSON.stringify(containers) == "[]") {
       fetch("/api/container/list").then(async (res) => {
         const containers = await res.json()
-        setContainers([...containers]);
+        const mapped = containers.map((c: any, idx: number) => {
+          return { ...c, idx, color: hashStringToColor(c.Name) }
+        })
+        setContainers([...mapped]);
       });
     }
 
     const handler = (e: any) => {
-      console.log(indexRef.current, containerRef.current)
 
       if (e.shiftKey && e.key == "ArrowDown" && containerRef.current != null) {
-        if (indexRef.current < containers.length - 1) {
+        if (containerRef.current.idx < containers.length - 1) {
           setContainer(() => {
 
-            return containers[indexRef.current + 1]
+            return containers[containerRef.current.idx.current + 1]
           })
-          setIndex(indexRef.current + 1)
 
           e.preventDefault()
         }
       }
       if (e.shiftKey && e.key == "ArrowUp" && containerRef.current != null) {
-        if (indexRef.current > 0) {
+        if (containerRef.current.idx.current > 0) {
           setContainer(() => {
 
-            return containers[indexRef.current - 1]
+            return containers[containerRef.current.idx.current - 1]
           })
-          setIndex(indexRef.current - 1)
 
           e.preventDefault()
         }
@@ -60,22 +60,26 @@ function App() {
         >
           <Box className="sidebarInfo">
 
-          <Box className="logo" width={"100%"} style={{ margin: "0 auto" }}>
-            <img draggable={false} src={"/docker.png"} alt="Logo" style={{ "width": "7rem", "margin": "0 auto" }} />
-            <h1 style={{ margin: "0rem auto", marginTop: "-1rem", "textAlign": "center", "width": "100%", "fontSize": "1.8rem", "fontWeight": "700", "fontFamily": "Brush Script MT, cursive", "color": "#e817da" }}>Log Harbor</h1>
-          </Box>
-          <h1 style={{ margin: "1rem auto", "width": "100%", "textAlign": "center", fontWeight: "700" }} color={"white.500"}>💨 Running Containers</h1>
-          </Box>
+            <Box className="logo" width={"100%"} style={{ margin: "0 auto" }}>
+              <img draggable={false} src={"/docker.png"} alt="Logo" style={{ "width": "7rem", "margin": "0 auto" }} />
+              <h1 style={{ margin: "0rem auto", marginTop: "-1rem", "textAlign": "center", "width": "100%", "fontSize": "1.8rem", "fontWeight": "700", "fontFamily": "Brush Script MT, cursive", "color": "#e817da" }}>Log Harbor</h1>
+            </Box>
+            
+            <h1 style={{ margin: "1rem auto", "width": "100%", "textAlign": "center", fontWeight: "700" }} color={"white.500"}>🐳 Running Containers</h1>
 
+          </Box>
+          <Separator />
           <div className="containerList">
             {containers.map((c: any, idx: number) => {
               return (
                 <Box style={{ "margin": "0.2rem" }}>
-                  <Button disabled={idx == indexRef.current} style={{ "width": "100%" }} colorPalette={"purple"} onClick={() => {
+                  <Button disabled={containerRef.current != null && idx == containerRef.current.idx} style={{ "width": "100%"}} colorPalette={"purple"} onClick={() => {
                     setContainer(c)
-                    setIndex(idx)
                   }}>
-                    {c.Name}
+                    <Code style={{"color": c.color}}>
+                    🏷️ {c.Name}
+
+                    </Code>
                   </Button>
                 </Box>
 
@@ -90,7 +94,7 @@ function App() {
         {/* Main Content Area */}
         <Box flex="1" p={4} className="content"          >
           {container != null && (
-            <ContainerView container={container} />
+            <StreamView containers={[container]} />
           )}
         </Box>
       </Flex>
