@@ -36,7 +36,7 @@ func LogStreamHandler(c *websocket.Conn) {
 	i, err := cli.ContainerLogs(ctx, containerId, container.LogsOptions{
 		ShowStderr: true,
 		ShowStdout: true,
-		Timestamps: false,
+		Timestamps: true,
 		Follow:     true,
 		Tail:       "40",
 	})

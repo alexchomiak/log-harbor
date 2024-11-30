@@ -5,6 +5,7 @@ import { Box, Button, Float } from "@chakra-ui/react";
 import alasql from "alasql";
 import { internalFieldKey } from "./provider/ContainerLogProvider";
 import useStateRef from "react-usestateref";
+import { toaster } from "./ui/toaster";
 interface LogStreamProps {
   windowSize?: number;
   filterType: "text" | "sql";
@@ -14,6 +15,7 @@ interface LogStreamProps {
   bufferRef: any
 }
 
+const VIEW_BUFFER = 128
 
 
 function extractInternalFieldsFromQueryString(str: string) {
@@ -70,12 +72,12 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
       tailRef.current.scrollIntoView();
     }
     const scrollEventHandler = () => {
-      // console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
+      console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
       if (tailPromptRef.current != null && tailPromptRef.current == false && boxRef.current.scrollHeight != boxRef.current.scrollTop + boxRef.current.clientHeight) {
         setShowTailPrompt(true)
       }
 
-      if (tailPromptRef.current != null && tailPromptRef.current == true && boxRef.current.scrollHeight <= boxRef.current.scrollTop + boxRef.current.clientHeight) {
+      if (tailPromptRef.current != null && tailPromptRef.current == true && boxRef.current.scrollHeight - 10 <= boxRef.current.scrollTop + boxRef.current.clientHeight) {
         setShowTailPrompt(false)
       }
     }
@@ -89,10 +91,15 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     try {
       console.log(extractInternalFieldsFromQueryString(props.filterExpression))
       const res = alasql(extractInternalFieldsFromQueryString(props.filterExpression), [buffer])
-      console.log(res)
       queriedBuffer = res
     } catch (e) {
-      console.warn(e)
+      if(props.filterExpression != null && props.filterExpression.length > 0) {
+        toaster.create({
+          title: "⚠️ Failure Querying Logs",
+          description: e.message,
+          duration: 2500
+        })
+      }
     }
   } else if (props.filterType == "text") {
     queriedBuffer = buffer.filter((m: any) => m[`${internalFieldKey}log`].includes(props.filterExpression))
@@ -110,7 +117,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
       
       <div className="logStreamV2" ref={boxRef}>
 
-        {queriedBuffer.map((log: any, index: number) => (
+        {queriedBuffer.slice(-VIEW_BUFFER).map((log: any, index: number) => (
           <LogLine key={index} log={log} />
         ))}
         <div ref={tailRef} />

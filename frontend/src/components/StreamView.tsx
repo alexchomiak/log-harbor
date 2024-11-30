@@ -65,9 +65,7 @@ export function StreamView(props: StreamViewProps) {
     }, [filterOpen])
 
 
-    return <div onKeyDownCapture={(e) => {
-        console.log(e)
-    }}><Box height={"100%"}  >
+    return <div><Box height={"100%"}  >
         <Box className="containerInfo" position={"relative"}>
             <Flex gap={5} justify={"flex-start"} height={"3rem"}>
                 <Flex direction={"column"} justify={"center"} height={"100%"}>
@@ -82,7 +80,6 @@ export function StreamView(props: StreamViewProps) {
                 style={{ "opacity": filterOpen ? 1 : 0, transform: filterOpen ? undefined : "translateY(-20rem) translateX(20rem) scale(0.0)", "zIndex": filterOpen ? 100 : -1 }}
 
                 onKeyDownCapture={(e) => {
-                    console.log(e)
                     if (e.key == "Escape" && e.shiftKey) {
                         setFilterExpression("")
                         setEditorText("")
@@ -116,7 +113,6 @@ export function StreamView(props: StreamViewProps) {
                 }}
             >
                 <Tabs.Root fitted defaultValue="text" onValueChange={(e) => {
-                    console.log("Value Change", e)
                     setFilterType(e.value as "sql" | "text")
                     setEditorText("")
                 }} value={filterType}>
@@ -164,7 +160,6 @@ export function StreamView(props: StreamViewProps) {
 
                         <Button style={{ "transition": "all 0.2s ease-in-out", "width": filterOpen ? "10rem" : "15rem" }} colorPalette={!filterOpen ? "purple" : "red"} onClick={() => {
                             if (!filterOpen && editorRef.current) {
-                                console.log(editorRef.current)
                                 editorRef.current.editor.focus()
                             }
                             setFilterOpen(!filterOpen)
