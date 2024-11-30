@@ -14,7 +14,7 @@ self.onmessage = async function(e) {
         const { container, host } = event;
         const containerId = container.Id
 
-        const item = await localforage.getItem(container.Id)
+        const item: any = await localforage.getItem(container.Id)
         if (item == null) {
             console.log("Creating new local buffer")
             await localforage.setItem(container.Id, {
@@ -127,7 +127,7 @@ self.onmessage = async function(e) {
                 messageMap[k] = true
             })
             let removed = 0
-            subscriptions[containerId].messageBuffer = messageBuffer.filter((m) => {
+            subscriptions[containerId].messageBuffer = messageBuffer.filter((m: any) => {
                 const toks = m.data.split(" ")
                 const timestamp = toks[0]
                 const data = toks.slice(1).join(" ")

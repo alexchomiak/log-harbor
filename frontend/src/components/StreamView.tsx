@@ -5,7 +5,7 @@ import AceEditor from "react-ace"
 import { useEffect, useRef, useState } from "react";
 import useStateRef from "react-usestateref";
 import { LogProvider } from "./provider/LogProvider";
-import { containerLogProvider, internalFieldKey } from "./provider/ContainerLogProvider";
+import { containerLogProvider } from "./provider/ContainerLogProvider";
 
 interface StreamViewProps {
     containers: any[];
@@ -32,7 +32,7 @@ export function StreamView(props: StreamViewProps) {
 
     useEffect(() => {
         const providers = containers.map((container) => {
-            return containerLogProvider(container, setBuffer, ref)
+            return containerLogProvider(container, setBuffer)
         });
         setBuffer([])
 

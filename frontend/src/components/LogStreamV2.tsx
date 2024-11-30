@@ -1,10 +1,8 @@
 import { memo, useEffect, useRef, useState } from "react";
-import useWebSocket from "react-use-websocket";
 import { LogLine } from "./LogLine";
-import { Box, Button, Float, Spinner, Text } from "@chakra-ui/react";
+import { Box, Button, Float, Spinner } from "@chakra-ui/react";
 import alasql from "alasql";
 import { internalFieldKey } from "./provider/ContainerLogProvider";
-import useStateRef from "react-usestateref";
 import { toaster } from "./ui/toaster";
 interface LogStreamProps {
   windowSize?: number;
@@ -66,7 +64,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
   const { buffer } = props
   const tailRef = useRef<any>(null);
   const boxRef = useRef<any>(null);
-  const [showTailPrompt, setShowTailPrompt, tailPromptRef] = useStateRef(true)
+  const [showTailPrompt, setShowTailPrompt] = useState(true)
   const [scrolling, setScrolling] = useState(false)
 
   let queriedBuffer = buffer
@@ -74,17 +72,6 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     if(!showTailPrompt && !scrolling) {
       boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
-    const scrollEventHandler = () => {
-      // console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
-      if (tailPromptRef.current != null && tailPromptRef.current == false && boxRef.current.scrollHeight != boxRef.current.scrollTop + boxRef.current.clientHeight) {
-        setShowTailPrompt(true)
-      }
-
-      if (tailPromptRef.current != null && tailPromptRef.current == true && boxRef.current.scrollHeight - 10 <= boxRef.current.scrollTop + boxRef.current.clientHeight) {
-        setShowTailPrompt(false)
-      }
-    }
-   
   }, [buffer])
 
   if (props.filterType == "sql") {
@@ -96,7 +83,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
       if(props.filterExpression != null && props.filterExpression.length > 0) {
         toaster.create({
           title: "⚠️ Failure Querying Logs",
-          description: e.message,
+          description: (e as Error).message,
           duration: 2500
         })
       }
@@ -124,14 +111,14 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
       <div className="logStreamV2">
 
-        <VList ref={boxRef} onScrollEnd={(e) => {
+        <VList ref={boxRef} onScrollEnd={() => {
           if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 10) {
             setShowTailPrompt(false)
           } else {
             setShowTailPrompt(true)
           }
           setScrolling(false)
-        }} onScroll={(e) => {
+        }} onScroll={(_) => {
           setScrolling(true)
         }}>
         {queriedBuffer.slice(-VIEW_BUFFER).map((log: any, index: number) => (
