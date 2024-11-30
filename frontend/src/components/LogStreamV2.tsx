@@ -9,8 +9,6 @@ interface LogStreamProps {
   filterType: "text" | "sql";
   filterExpression: string
   buffer: any
-  setBuffer: (any: any) => void
-  bufferRef: any
 }
 import { VList } from "virtua";
 

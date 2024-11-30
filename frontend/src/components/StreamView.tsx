@@ -28,13 +28,17 @@ export function StreamView(props: StreamViewProps) {
         }
     }, [editorText])
 
-    const [buffer, setBuffer, ref] = useStateRef<any>([]);
+    const [buffer, setBuffer, ref] = useStateRef<any>({
+        [containers[0].Id]: []
+    });
 
     useEffect(() => {
         const providers = containers.map((container) => {
-            return containerLogProvider(container, setBuffer)
+            return containerLogProvider(container, setBuffer, ref)
         });
-        setBuffer([])
+        setBuffer({
+            [containers[0].Id]: []
+        })
 
         return () => {
             providers.forEach((provider: LogProvider) => {
@@ -64,6 +68,7 @@ export function StreamView(props: StreamViewProps) {
         }
     }, [filterOpen])
 
+    console.log(buffer)
 
     return <div><Box height={"100%"}  >
         <Box className="containerInfo" position={"relative"}>
@@ -171,7 +176,7 @@ export function StreamView(props: StreamViewProps) {
         </Box>
 
         <Box position={"relative"} style={{"overflow": "hidden"}}>
-            <LogStreamV2 buffer={buffer} setBuffer={setBuffer} bufferRef={ref} filterExpression={filterExpression} filterType={filterType}/>
+            <LogStreamV2 buffer={buffer[containers[0].Id] != undefined ? buffer[containers[0].Id]: []}  filterExpression={filterExpression} filterType={filterType}/>
         </Box>
     </Box>
     </div>

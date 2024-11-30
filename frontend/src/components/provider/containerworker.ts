@@ -2,35 +2,38 @@ import localforage from "localforage";
 import { internalFieldKey } from "./ContainerLogProvider";
 
 const subscriptions: any = {}
-const WINDOW_BUFFER_LIMIT = 2048
+const WINDOW_BUFFER_LIMIT = 16000
 const dedupMap: any = {}
 
-self.onmessage = async function(e) {
+self.onmessage = function(e) {
 
     const data = e.data;
     const event = JSON.parse(data);
     console.log("Worker Event", event)
     if (event.type === 'subscribe') {
         const { container, host } = event;
-        const containerId = container.Id
+        const containerId = container.Id;
 
-        const item: any = await localforage.getItem(container.Id)
-        if (item == null) {
-            console.log("Creating new local buffer")
-            await localforage.setItem(container.Id, {
-                logbuf: []
-            })
-        } else {
-            // * Populate dedup map
-            const dbBuf: any = item.logbuf
-            dbBuf.forEach((log: any) => {
-                const t = log[`${internalFieldKey}time`]
-                const d = log[`${internalFieldKey}log`]
-                const k = `${t}-${d}`
-                dedupMap[k] = true
-            })
-            self.postMessage(JSON.stringify({ type: "update", id: containerId, buffer: item.logbuf }))
-        }
+        (async () => {
+            const item: any = await localforage.getItem(container.Id)
+            if (item == null) {
+                console.log("Creating new local buffer")
+                await localforage.setItem(container.Id, {
+                    logbuf: []
+                })
+            } else {
+                // * Populate dedup map
+                const dbBuf: any = item.logbuf
+                dbBuf.forEach((log: any) => {
+                    const t = log[`${internalFieldKey}time`]
+                    const d = log[`${internalFieldKey}log`]
+                    const k = `${t}-${d}`
+                    dedupMap[k] = true
+                })
+                self.postMessage(JSON.stringify({ type: "update", id: containerId, buffer: item.logbuf }))
+            }
+        })();
+        
 
 
         const socketUrl = `ws://${host}/ws/logs/` + containerId;
@@ -44,6 +47,7 @@ self.onmessage = async function(e) {
             interval = setInterval(() => {
                 connection.send(JSON.stringify({ interval: 5 }));
             }, 1000)
+            subscriptions[containerId].keepAliveInterval = interval
             connection.send(JSON.stringify({ interval: 5 }));
         }
 
@@ -164,10 +168,13 @@ self.onmessage = async function(e) {
         const { container } = event;
         const containerId = container.Id
         const sub = subscriptions[containerId]
+        
         if(sub != undefined) {
             clearInterval(sub.refreshInterval)
             clearInterval(sub.keepAliveInterval)
-            sub.connection.close()
+            if (sub.connection.readyState == WebSocket.OPEN || sub.connection.readyState == WebSocket.CONNECTING) {
+                sub.connection.close()
+            }
             // delete subscriptions[containerId]
             console.log("Unsubscribed", containerId)
         }
