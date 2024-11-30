@@ -57,8 +57,7 @@ function extractInternalFieldsFromQueryString(str: string) {
 
 export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) {
 
-  const unflattenedBuffer = props.buffer
-  const buffer = Object.values(unflattenedBuffer).flat().sort((a: any, b: any) => {
+  const buffer = props.buffer.sort((a: any, b: any) => {
     return a[internalFieldKey + "time"] > b[internalFieldKey + "time"] ? 1 : -1
   })
   const tailRef = useRef<any>(null);
@@ -71,7 +70,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     if(!showTailPrompt && !scrolling) {
       boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
-  }, [unflattenedBuffer])
+  }, [buffer])
 
   if (props.filterType == "sql") {
     try {

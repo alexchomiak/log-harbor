@@ -1,41 +1,63 @@
-import localforage from "localforage";
+import localforage, { key } from "localforage";
 import { internalFieldKey } from "./ContainerLogProvider";
 
 const subscriptions: any = {}
 const WINDOW_BUFFER_LIMIT = 16000
-const dedupMap: any = {}
+const dedupContainerMap: any = {}
+console.log("Worker init")
 
-self.onmessage = function(e) {
+localforage.keys().then(async (keys) => {
+    keys.forEach(async (key) => {
+        const item: any = await localforage.getItem(key)
+        if(item != null) {
+            const date = new Date(item.lastUpdated)
+            // * Delete unused buffers after 1 day of no use
+            if(item.lastUpdated != undefined && (new Date().getTime() - date.getTime()) > 1000 * 60 * 60 * 24) {
+                console.log("Deleting old buffer", key)
+                await localforage.removeItem
+            }
+        }
+    })
+})
+
+self.onmessage = async function(e) {
 
     const data = e.data;
     const event = JSON.parse(data);
     console.log("Worker Event", event)
+
     if (event.type === 'subscribe') {
         const { container, host } = event;
         const containerId = container.Id;
+        if(dedupContainerMap[containerId] == undefined) {
+            dedupContainerMap[containerId] = {}
+        }
 
-        (async () => {
-            const item: any = await localforage.getItem(container.Id)
-            if (item == null) {
-                console.log("Creating new local buffer")
-                await localforage.setItem(container.Id, {
-                    logbuf: []
-                })
-            } else {
-                // * Populate dedup map
-                const dbBuf: any = item.logbuf
-                dbBuf.forEach((log: any) => {
-                    const t = log[`${internalFieldKey}time`]
-                    const d = log[`${internalFieldKey}log`]
-                    const k = `${t}-${d}`
-                    dedupMap[k] = true
-                })
-                self.postMessage(JSON.stringify({ type: "update", id: containerId, buffer: item.logbuf }))
-            }
-        })();
+        const item: any = await localforage.getItem(container.Id)
+        if (item == null) {
+            console.log("Creating new local buffer")
+            await localforage.setItem(container.Id, {
+                logbuf: []
+            })
+        } else {
+            // * Populate dedup map
+            
+            const dbBuf: any = item.logbuf
+            const buf = dbBuf.filter((log: any) => {
+                const t = log[`${internalFieldKey}time`]
+                const d = log[`${internalFieldKey}log`]
+                const k = `${t}-${d}`
+                if(dedupContainerMap[containerId][k] == undefined) {
+                    dedupContainerMap[containerId][k] = true
+                    return true
+                }
+                return false;
+
+            })
+            self.postMessage(JSON.stringify({ type: "update", id: containerId, values: buf }))
+        }
         
-
-
+        
         const socketUrl = `ws://${host}/ws/logs/` + containerId;
         const connection = new WebSocket(socketUrl)
 
@@ -70,9 +92,8 @@ self.onmessage = function(e) {
             subscriptions[containerId].processing = true 
     
             const windowItem: any = await localforage.getItem(containerId)
-            const messageBufCopy = [...messageBuffer]
             const newMessages: any[] = []
-            messageBufCopy.forEach((m: any) => {
+            messageBuffer.forEach((m: any) => {
                 const toks = m.data.split(" ")
                 const timestamp = toks[0]
                 const data = toks.slice(1).join(" ")
@@ -90,7 +111,7 @@ self.onmessage = function(e) {
                     [`${internalFieldKey}containerName`]: container.Name,
                     [`${internalFieldKey}containerColor`]: container.color,
                     [`${internalFieldKey}containerImage`]: container.Config.Image,
-                    [`${internalFieldKey}time`]: new Date(timestamp),
+                    [`${internalFieldKey}time`]: timestamp,
                 }
                 newMessages.push({ [logKey]: data, [ingestionKey]: new Date(), ...containerFields, ...fields })
             })
@@ -101,16 +122,19 @@ self.onmessage = function(e) {
             }
             // console.log("DB buffer", windowBuf)
             // console.log("New Messages", newMessages)
-            let buf = [...windowBuf, ...newMessages.filter((log) => {
+            const filteredMessages = newMessages.filter((log) => {
                 const t = log[`${internalFieldKey}time`]
                 const d = log[`${internalFieldKey}log`]
                 const k = `${t}-${d}`
-                if (dedupMap[k] == undefined) {
-                    dedupMap[k] = true
+                if(dedupContainerMap[containerId][k] == undefined) {
+                    dedupContainerMap[containerId][k] = true
                     return true
                 }
                 return false
-            })];
+            })
+            self.postMessage(JSON.stringify({ type: "update", id: containerId, values: filteredMessages }))
+
+            let buf = [...windowBuf, ...filteredMessages];
     
             if (buf.length > WINDOW_BUFFER_LIMIT) {
                 while (buf.length > WINDOW_BUFFER_LIMIT) {
@@ -118,12 +142,13 @@ self.onmessage = function(e) {
                     const t = log[`${internalFieldKey}time`]
                     const d = log[`${internalFieldKey}log`]
                     const k = `${t}-${d}`
-                    delete dedupMap[k]
+                    delete dedupContainerMap[containerId][k]
                     buf.shift()
                 }
             }
             await localforage.setItem(container.Id, {
-                logbuf: buf
+                logbuf: buf,
+                lastUpdated: new Date().toString()
             })
     
             
@@ -148,8 +173,7 @@ self.onmessage = function(e) {
                 }
                 return messageMap[k] == undefined
             })
-            // console.log("Done processing. Removed", removed, "messages from queue")
-            self.postMessage(JSON.stringify({ type: "update", id: containerId, buffer: buf }))
+   
             subscriptions[containerId].processing = false
     
         }
@@ -181,6 +205,7 @@ self.onmessage = function(e) {
                 sub.connection.close()
             }
             delete subscriptions[containerId]
+            delete dedupContainerMap[containerId]
             console.log("Unsubscribed", containerId)
         }
     }

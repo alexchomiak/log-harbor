@@ -29,9 +29,7 @@ export function StreamView(props: StreamViewProps) {
         }
     }, [editorText])
 
-    const [buffer, setBuffer, ref] = useStateRef<any>({
-        [containers[0].Id]: []
-    });
+    const [buffer, setBuffer, ref] = useStateRef<any>([]);
 
     const worker = getContainerWorker()
     useEffect(() => {
@@ -39,19 +37,12 @@ export function StreamView(props: StreamViewProps) {
             return containerLogProvider(container)
         });
 
-        const newBuf: any = {}
-        containers.forEach((container) => {
-            newBuf[container.Id] = []
-        })
-        setBuffer({
-            ...newBuf
-        })
+        setBuffer([])
        
         return () => {
             providers.forEach((provider: LogProvider) => {
                 provider.cleanup()
             })
-            
         }
     }, [containers])
 
@@ -60,11 +51,9 @@ export function StreamView(props: StreamViewProps) {
             const data = e.data;
             const event = JSON.parse(data);
             if(event.type == "update") {
-                const { buffer, id } = event
-                setBuffer({
-                    ...ref.current,
-                    [id]: buffer
-                })
+                const { values } = event
+                console.log(values)
+                setBuffer([...ref.current, ...values])
             }
         }
         return () => {
