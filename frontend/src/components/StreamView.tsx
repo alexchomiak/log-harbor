@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import useStateRef from "react-usestateref";
 import { LogProvider } from "./provider/LogProvider";
 import { containerLogProvider } from "./provider/ContainerLogProvider";
+import { getContainerWorker } from "./provider/WorkerProvider";
 
 interface StreamViewProps {
     containers: any[];
@@ -32,21 +33,44 @@ export function StreamView(props: StreamViewProps) {
         [containers[0].Id]: []
     });
 
+    const worker = getContainerWorker()
     useEffect(() => {
         const providers = containers.map((container) => {
-            return containerLogProvider(container, setBuffer, ref)
+            return containerLogProvider(container)
         });
-        setBuffer({
-            [containers[0].Id]: []
-        })
 
+        const newBuf: any = {}
+        containers.forEach((container) => {
+            newBuf[container.Id] = []
+        })
+        setBuffer({
+            ...newBuf
+        })
+       
         return () => {
             providers.forEach((provider: LogProvider) => {
                 provider.cleanup()
             })
+            
         }
     }, [containers])
 
+    useEffect(() => {
+        worker.onmessage = (e: any) => {
+            const data = e.data;
+            const event = JSON.parse(data);
+            if(event.type == "update") {
+                const { buffer, id } = event
+                setBuffer({
+                    ...ref.current,
+                    [id]: buffer
+                })
+            }
+        }
+        return () => {
+            worker.onmessage = () => {}
+        }
+    }, [])
 
     useEffect(() => {
         const handler = (e: any) => {
@@ -72,12 +96,21 @@ export function StreamView(props: StreamViewProps) {
     return <div><Box height={"100%"}  >
         <Box className="containerInfo" position={"relative"}>
             <Flex gap={5} justify={"flex-start"} height={"3rem"}>
+            {containers.length == 1 && <>
+
                 <Flex direction={"column"} justify={"center"} height={"100%"}>
                     <Code style={{"color": containers[0].color}} fontSize={"1rem"} fontWeight={900}> 🏷️ {containers[0].Name}</Code>
                 </Flex>
                 <Flex direction={"column"} justify={"center"} height={"100%"}>
-                    <Code colorPalette={"purple"} fontSize={"rem"} fontWeight={500}>🌠 {containers[0].Config.Image}</Code>
+                    <Code colorPalette={"purple"} fontSize={"1rem"} fontWeight={500}>🌠 {containers[0].Config.Image}</Code>
                 </Flex>
+                </>
+            } 
+            {containers.length > 1 && <>
+                <Flex direction={"column"} justify={"center"} height={"100%"}>
+                    <Code colorPalette={"purple"} fontSize={"1rem"} fontWeight={500}>🔦 Multi-Container Stream</Code>
+                </Flex>
+            </>}
             </Flex>
             <div
                 className="filterEditor"
@@ -175,7 +208,7 @@ export function StreamView(props: StreamViewProps) {
         </Box>
 
         <Box position={"relative"} style={{"overflow": "hidden"}}>
-            <LogStreamV2 buffer={buffer[containers[0].Id] != undefined ? buffer[containers[0].Id]: []}  filterExpression={filterExpression} filterType={filterType}/>
+            <LogStreamV2 buffer={buffer}  filterExpression={filterExpression} filterType={filterType}/>
         </Box>
     </Box>
     </div>

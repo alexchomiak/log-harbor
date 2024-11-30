@@ -90,7 +90,7 @@ self.onmessage = function(e) {
                     [`${internalFieldKey}containerName`]: container.Name,
                     [`${internalFieldKey}containerColor`]: container.color,
                     [`${internalFieldKey}containerImage`]: container.Config.Image,
-                    [`${internalFieldKey}time`]: timestamp,
+                    [`${internalFieldKey}time`]: new Date(timestamp),
                 }
                 newMessages.push({ [logKey]: data, [ingestionKey]: new Date(), ...containerFields, ...fields })
             })

@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "./App.css";
-import { Box, Button, Code, Flex, Separator } from "@chakra-ui/react";
+import { Box, Button, Code, Flex, Float, Separator } from "@chakra-ui/react";
 import { StreamView } from "./components/StreamView";
-import useStateRef from "react-usestateref";
 import { hashStringToColor } from "./util/color";
+import useStateRef from "react-usestateref";
 function App() {
-  const [containers, setContainers] = useState([] as any);
-  const [container, setContainer, containerRef] = useStateRef<any | null>(null);
+  const [containers, setContainers, containersRef] = useStateRef([] as any);
+
+  const [selectedContainers, setSelectedContainers, selectedContainersRef] = useStateRef([] as any);
 
   useEffect(() => {
     if (JSON.stringify(containers) == "[]") {
@@ -20,27 +21,24 @@ function App() {
     }
 
     const handler = (e: any) => {
+      if(selectedContainersRef.current.length > 1 || selectedContainersRef.current.length == 0) return;
+      const container = selectedContainersRef.current[0]
+      const containerIdx = containersRef.current.findIndex((c: any) => c.Id == container.Id)
 
-      if (e.shiftKey && e.key == "ArrowDown" && containerRef.current != null) {
-        if (containerRef.current.idx < containers.length - 1) {
-          setContainer(() => {
 
-            return containers[containerRef.current.idx.current + 1]
-          })
-
+      if (e.shiftKey && e.key == "ArrowDown") {
+        
+        if (containerIdx < containers.length - 1) {
+          setSelectedContainers([containersRef.current[containerIdx + 1]])
           e.preventDefault()
         }
       }
-      if (e.shiftKey && e.key == "ArrowUp" && containerRef.current != null) {
-        if (containerRef.current.idx.current > 0) {
-          setContainer(() => {
-
-            return containers[containerRef.current.idx.current - 1]
-          })
-
+      else if (e.shiftKey && e.key == "ArrowUp") {
+        if (containerIdx > 0) {
+          setSelectedContainers([containersRef.current[containerIdx - 1]])
           e.preventDefault()
         }
-      }
+      } 
     }
     window.addEventListener("keydown", handler)
     return () => {
@@ -70,12 +68,15 @@ function App() {
           </Box>
           <Separator />
           <div className="containerList">
-            {containers.map((c: any, idx: number) => {
+            {containers.map((c: any) => {
               return (
                 <Box style={{ "margin": "0.2rem" }}>
-                  <Button disabled={containerRef.current != null && idx == containerRef.current.idx} style={{ "width": "100%", "textWrap": "wrap", "wordBreak": "break-all"}} colorPalette={"purple"} onClick={() => {
-                    console.log(c)
-                    setContainer(c)
+                  <Button className="prevent-select" variant={selectedContainers.includes(c) ? "subtle": "solid"}  style={{ "width": "100%", "textWrap": "wrap", "wordBreak": "break-all"}} colorPalette={"purple"} onClick={() => {
+                    if(!selectedContainers.includes(c))
+                      setSelectedContainers([...selectedContainers, c])
+                    else {
+                      setSelectedContainers(selectedContainers.filter((sc: any) => sc != c))
+                    }
                   }}>
                     <Code style={{"color": c.color}}>
                     🏷️ {c.Name}
@@ -93,10 +94,15 @@ function App() {
         </Box>
 
         {/* Main Content Area */}
-        <Box flex="1" p={4} className="content"          >
-          {container != null && (
-            <StreamView containers={[container]} />
+        <Box flex="1" p={4} className="content"  style={{"position": "relative"}}    >
+          {selectedContainers.length > 0 && (
+            <StreamView containers={selectedContainers} />
           )}
+          {selectedContainers.length == 0 && (
+            <Float placement="middle-center" style={{width: "100%"}}>
+                🙏 Select a Container to monitor & analyze logs
+            </Float>
+            )}
         </Box>
       </Flex>
 

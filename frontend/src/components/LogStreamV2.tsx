@@ -5,7 +5,6 @@ import alasql from "alasql";
 import { internalFieldKey } from "./provider/ContainerLogProvider";
 import { toaster } from "./ui/toaster";
 interface LogStreamProps {
-  windowSize?: number;
   filterType: "text" | "sql";
   filterExpression: string
   buffer: any
@@ -13,7 +12,6 @@ interface LogStreamProps {
 import { VList } from "virtua";
 
 
-const VIEW_BUFFER = 256
 
 
 function extractInternalFieldsFromQueryString(str: string) {
@@ -59,7 +57,10 @@ function extractInternalFieldsFromQueryString(str: string) {
 
 export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) {
 
-  const { buffer } = props
+  const unflattenedBuffer = props.buffer
+  const buffer = Object.values(unflattenedBuffer).flat().sort((a: any, b: any) => {
+    return a[internalFieldKey + "time"] > b[internalFieldKey + "time"] ? 1 : -1
+  })
   const tailRef = useRef<any>(null);
   const boxRef = useRef<any>(null);
   const [showTailPrompt, setShowTailPrompt] = useState(true)
@@ -70,7 +71,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     if(!showTailPrompt && !scrolling) {
       boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
-  }, [buffer])
+  }, [unflattenedBuffer])
 
   if (props.filterType == "sql") {
     try {
@@ -119,7 +120,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
         }} onScroll={(_) => {
           setScrolling(true)
         }}>
-        {queriedBuffer.slice(-VIEW_BUFFER).map((log: any, index: number) => (
+        {queriedBuffer.map((log: any, index: number) => (
           <LogLine key={index} log={log} />
         ))}
           </VList>

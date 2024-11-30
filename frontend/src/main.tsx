@@ -10,7 +10,6 @@ import App from "./App.tsx";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster"
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ChakraProvider value={defaultSystem}>

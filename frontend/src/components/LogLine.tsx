@@ -15,7 +15,7 @@ export const LogLine = memo(function LogLine(props: { log: any }) {
   return <Box className={show ? "logLine expandedLog" : "logLine"}
     data-state="open"
     _open={{
-      animation: "fade-in 500ms ease-out",
+      animation: "fade-in 250ms ease-out",
     }}
   >
     <Collapsible.Root open={show} style={{ "margin": "0", "padding": "0", "textAlign": "left" }}>
