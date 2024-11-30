@@ -114,6 +114,11 @@ self.onmessage = function(e) {
     
             if (buf.length > WINDOW_BUFFER_LIMIT) {
                 while (buf.length > WINDOW_BUFFER_LIMIT) {
+                    const log = buf[0]
+                    const t = log[`${internalFieldKey}time`]
+                    const d = log[`${internalFieldKey}log`]
+                    const k = `${t}-${d}`
+                    delete dedupMap[k]
                     buf.shift()
                 }
             }
@@ -175,7 +180,7 @@ self.onmessage = function(e) {
             if (sub.connection.readyState == WebSocket.OPEN || sub.connection.readyState == WebSocket.CONNECTING) {
                 sub.connection.close()
             }
-            // delete subscriptions[containerId]
+            delete subscriptions[containerId]
             console.log("Unsubscribed", containerId)
         }
     }

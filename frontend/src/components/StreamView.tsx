@@ -68,7 +68,6 @@ export function StreamView(props: StreamViewProps) {
         }
     }, [filterOpen])
 
-    console.log(buffer)
 
     return <div><Box height={"100%"}  >
         <Box className="containerInfo" position={"relative"}>

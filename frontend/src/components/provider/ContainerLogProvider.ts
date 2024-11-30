@@ -20,7 +20,6 @@ export function containerLogProvider(container: any, setBuffer: (any: any) => vo
     }
     return {
         type: "container", cleanup: () => {
-            console.log("Cleaning up")
             worker.postMessage(JSON.stringify({ type: "unsubscribe", container, host }))
         }
     }

@@ -73,7 +73,7 @@ function App() {
             {containers.map((c: any, idx: number) => {
               return (
                 <Box style={{ "margin": "0.2rem" }}>
-                  <Button disabled={containerRef.current != null && idx == containerRef.current.idx} style={{ "width": "100%"}} colorPalette={"purple"} onClick={() => {
+                  <Button disabled={containerRef.current != null && idx == containerRef.current.idx} style={{ "width": "100%", "textWrap": "wrap", "wordBreak": "break-all"}} colorPalette={"purple"} onClick={() => {
                     console.log(c)
                     setContainer(c)
                   }}>
