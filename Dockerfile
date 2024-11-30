@@ -8,6 +8,7 @@ RUN npm install && npm run build
 FROM golang:1.23-alpine as backend 
 ENV GOOS=linux
 ENV GOARCH=amd64
+ENV CGO_ENABLED=0
 
 # * Copy Backend Code 
 COPY ./backend /var/log-harbor/backend
