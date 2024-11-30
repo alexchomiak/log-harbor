@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import preact from '@preact/preset-vite';
+
 import tsconfigPaths from "vite-tsconfig-paths";
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
+  plugins: [preact(), tsconfigPaths()],
   server: {
     proxy: {
       "/api": {
@@ -14,6 +15,13 @@ export default defineConfig({
         target: "http://127.0.0.1:3000/ws",
         changeOrigin: true,
       },
+    },
+  },
+  resolve: {
+    alias: {
+      react: 'preact/compat',
+      'react-dom': 'preact/compat',
+      'react/jsx-runtime': 'preact/jsx-runtime',
     },
   },
 });
