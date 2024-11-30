@@ -13,7 +13,7 @@ function App() {
       fetch("/api/container/list").then(async (res) => {
         const containers = await res.json()
         const mapped = containers.map((c: any, idx: number) => {
-          return { ...c, idx, color: hashStringToColor(c.Name) }
+          return { ...c, idx, color: hashStringToColor(c.Id) }
         })
         setContainers([...mapped]);
       });
@@ -74,6 +74,7 @@ function App() {
               return (
                 <Box style={{ "margin": "0.2rem" }}>
                   <Button disabled={containerRef.current != null && idx == containerRef.current.idx} style={{ "width": "100%"}} colorPalette={"purple"} onClick={() => {
+                    console.log(c)
                     setContainer(c)
                   }}>
                     <Code style={{"color": c.color}}>

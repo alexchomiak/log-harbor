@@ -6,17 +6,24 @@ function djb2(str: string) {
     return hash;
 }
 
+function hslToHex(h: number, s: number, l: number): string {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 export function hashStringToColor(str: string) {
     const hash = djb2(str);
 
-    // Generate RGB values but keep them in the brighter range
-    const r = ((hash & 0xFF0000) >> 16) % 128 + 127; // Ensures r is between 127 and 255
-    const g = ((hash & 0x00FF00) >> 8) % 128 + 127;  // Ensures g is between 127 and 255
-    const b = (hash & 0x0000FF) % 128 + 127;         // Ensures b is between 127 and 255
+    // Use the hash to generate HSL values
+    const h = Math.abs(hash % 360);       // Hue: 0–359 (full spectrum)
+    const s = 90;                         // Saturation: 70% for vibrancy
+    const l = 80;                         // Lightness: 70% for enhanced brightness
 
-    // Convert to hexadecimal and ensure two-digit format
-    return "#" + 
-        ("0" + r.toString(16)).slice(-2) + 
-        ("0" + g.toString(16)).slice(-2) + 
-        ("0" + b.toString(16)).slice(-2);
+    return hslToHex(h, s, l);
 }

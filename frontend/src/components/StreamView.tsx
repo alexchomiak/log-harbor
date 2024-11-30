@@ -7,7 +7,6 @@ import useStateRef from "react-usestateref";
 import { LogProvider } from "./provider/LogProvider";
 import { containerLogProvider, internalFieldKey } from "./provider/ContainerLogProvider";
 
-
 interface StreamViewProps {
     containers: any[];
 }
@@ -30,6 +29,7 @@ export function StreamView(props: StreamViewProps) {
     }, [editorText])
 
     const [buffer, setBuffer, ref] = useStateRef<any>([]);
+
     useEffect(() => {
         const providers = containers.map((container) => {
             return containerLogProvider(container, setBuffer, ref)

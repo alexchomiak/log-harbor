@@ -3,7 +3,7 @@
     margin: 0 auto;
     padding: 1rem;
     height: 10rem;
-    overflow-y: scroll;
+    overflow-y: auto;
     min-height: calc(100vh - 2 * var(--footer-height));
     min-height: calc(100vh - 2 * var(--footer-height));
 }

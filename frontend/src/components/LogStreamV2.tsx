@@ -1,7 +1,7 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import useWebSocket from "react-use-websocket";
 import { LogLine } from "./LogLine";
-import { Box, Button, Float } from "@chakra-ui/react";
+import { Box, Button, Float, Spinner, Text } from "@chakra-ui/react";
 import alasql from "alasql";
 import { internalFieldKey } from "./provider/ContainerLogProvider";
 import useStateRef from "react-usestateref";
@@ -14,8 +14,10 @@ interface LogStreamProps {
   setBuffer: (any: any) => void
   bufferRef: any
 }
+import { VList } from "virtua";
 
-const VIEW_BUFFER = 128
+
+const VIEW_BUFFER = 256
 
 
 function extractInternalFieldsFromQueryString(str: string) {
@@ -64,15 +66,16 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
   const { buffer } = props
   const tailRef = useRef<any>(null);
   const boxRef = useRef<any>(null);
-  const [showTailPrompt, setShowTailPrompt, tailPromptRef] = useStateRef(false)
+  const [showTailPrompt, setShowTailPrompt, tailPromptRef] = useStateRef(true)
+  const [scrolling, setScrolling] = useState(false)
 
   let queriedBuffer = buffer
   useEffect(() => {
-    if(!showTailPrompt) {
-      tailRef.current.scrollIntoView();
+    if(!showTailPrompt && !scrolling) {
+      boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
     const scrollEventHandler = () => {
-      console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
+      // console.log(boxRef.current.scrollHeight, boxRef.current.scrollTop + boxRef.current.clientHeight)
       if (tailPromptRef.current != null && tailPromptRef.current == false && boxRef.current.scrollHeight != boxRef.current.scrollTop + boxRef.current.clientHeight) {
         setShowTailPrompt(true)
       }
@@ -81,10 +84,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
         setShowTailPrompt(false)
       }
     }
-    boxRef.current.addEventListener("scroll", scrollEventHandler);
-    return () => {
-      boxRef.current.removeEventListener("scroll", scrollEventHandler);
-    }
+   
   }, [buffer])
 
   if (props.filterType == "sql") {
@@ -108,18 +108,37 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
   return (
     <div>
-      <div style={{ "position": "absolute", "opacity":  showTailPrompt ? "1" : "0" ,bottom: "1rem", "transition": "opacity ease-in-out 250ms","transform": "translate(-50%,0%)", "left": "50%", "width": "90%" }}>
+      <div style={{ "position": "absolute", "width": showTailPrompt ? "90%" : "0px","opacity":  showTailPrompt ? "1" : "0" ,bottom: "1rem", "transition": "all ease-in-out 500ms","transform": "translate(-50%,0%)", "left": "50%", "zIndex": "100" }}>
         <Button onClick={() => {
-          tailRef.current.scrollIntoView({ behavior: "smooth" });
+          let smooth = false
+          if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 5 * boxRef.current.viewportSize) {
+            smooth = true
+          }
+          console.log(boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth} ))
 
         }} colorPalette={"purple"} variant={"surface"}  width={"100%"}>⬇️ Tail logs</Button>
       </div>
-      
-      <div className="logStreamV2" ref={boxRef}>
+      {buffer.length == 0 && <Float style={{width: "15rem"}} placement={"middle-center"}>
+        <Box style={{ "textAlign": "center", width: "15rem" }}><Spinner/></Box>
+        </Float>}
 
+      <div className="logStreamV2">
+
+        <VList ref={boxRef} onScrollEnd={(e) => {
+          if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 10) {
+            setShowTailPrompt(false)
+          } else {
+            setShowTailPrompt(true)
+          }
+          setScrolling(false)
+        }} onScroll={(e) => {
+          setScrolling(true)
+        }}>
         {queriedBuffer.slice(-VIEW_BUFFER).map((log: any, index: number) => (
           <LogLine key={index} log={log} />
         ))}
+          </VList>
+        
         <div ref={tailRef} />
       </div>
     </div>
