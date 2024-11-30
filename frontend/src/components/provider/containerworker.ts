@@ -1,4 +1,4 @@
-import localforage, { key } from "localforage";
+import localforage from "localforage";
 import { internalFieldKey } from "./ContainerLogProvider";
 
 const subscriptions: any = {}
@@ -25,14 +25,12 @@ self.onmessage = async function(e) {
     const data = e.data;
     const event = JSON.parse(data);
     console.log("Worker Event", event)
-
     if (event.type === 'subscribe') {
         const { container, host } = event;
         const containerId = container.Id;
         if(dedupContainerMap[containerId] == undefined) {
             dedupContainerMap[containerId] = {}
         }
-
         const item: any = await localforage.getItem(container.Id)
         if (item == null) {
             console.log("Creating new local buffer")

@@ -111,8 +111,11 @@ function App() {
         <Flex gap={6} justify={"center"}>
           {/* @ts-expect-error casting to link */}
           <Button size={"sm"} variant={"ghost"} as={"a"} href="https://github.com/alexchomiak" target="_blank">🐣 Created by Alex Chomiak</Button>
-          {/* @ts-expect-error casting to link */}
-          <Button size={"sm"} variant={"ghost"} as={"a"} href="https://buymeacoffee.com/alexchomiak" target="_blank">☕️ Buy me a Coffee</Button>
+          {window.location.host.toLowerCase().includes("amazon") && <>
+              {/* @ts-expect-error casting to link */}
+              <Button size={"sm"} variant={"ghost"} as={"a"} href="https://buymeacoffee.com/alexchomiak" target="_blank">☕️ Buy me a Coffee</Button>
+          </>}
+      
         </Flex>
 
       </Box>
