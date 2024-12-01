@@ -24,7 +24,10 @@ This project was inspired by [Dozzle](https://github.com/amir20/dozzle). Please 
   * Supports streaming up to 200 Containers at once! (or whatever your Browser's websocket pool limit is)
 
 ## Get Started
-TODO
+Run Log Harbor on your host with the following command
+```sh
+docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock alexchomiak/log-harbor:main
+```
 
 ## Architecture & Frameworks 
 TODO
