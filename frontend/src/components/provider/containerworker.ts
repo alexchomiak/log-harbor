@@ -74,14 +74,9 @@ self.onmessage = async function(e) {
         const connection = new WebSocket(socketUrl)
 
         subscriptions[containerId].connection = connection
-        let interval: any = null;
 
         connection.onopen = () => {
             // * KeepAlive pings
-            interval = setInterval(() => {
-                connection.send(JSON.stringify({ interval: 5 }));
-            }, 1000)
-            subscriptions[containerId].keepAliveInterval = interval
             connection.send(JSON.stringify({ interval: 5 }));
         }
 
@@ -91,8 +86,8 @@ self.onmessage = async function(e) {
 
 
         const refresh = async () => {
+            
             const messageBuffer = subscriptions[containerId].messageBuffer
-
             if(messageBuffer.length == 0) {
                 return;
             }
@@ -100,8 +95,12 @@ self.onmessage = async function(e) {
             if(subscriptions[containerId].processing) {
                 return
             }
+
+            const start = new Date().getTime()
             subscriptions[containerId].processing = true 
-    
+            
+            connection.send(JSON.stringify({ interval: 5 }));
+
             const windowItem: any = await localforage.getItem(containerId)
             const newMessages: any[] = []
             messageBuffer.forEach((m: any) => {
@@ -159,6 +158,10 @@ self.onmessage = async function(e) {
                     buf.shift()
                 }
             }
+
+            connection.send(JSON.stringify({ interval: 5 }));
+
+
             await localforage.setItem(container.Id, {
                 logbuf: buf,
                 lastUpdated: new Date().toString()
@@ -187,6 +190,7 @@ self.onmessage = async function(e) {
                 return messageMap[k] == undefined
             })
    
+            console.log(`${removed} messages removed from buffer. Buffer Size: ${subscriptions[containerId].messageBuffer.length}. Took ${new Date().getTime() - start}ms`)
             subscriptions[containerId].processing = false
     
         }
@@ -212,7 +216,6 @@ self.onmessage = async function(e) {
         
         if(sub != undefined) {
             clearInterval(sub.refreshInterval)
-            clearInterval(sub.keepAliveInterval)
             if (sub.connection != undefined && sub.connection.readyState != undefined && sub.connection.readyState == WebSocket.OPEN || sub.connection.readyState == WebSocket.CONNECTING) {
                 sub.connection.close()
             }

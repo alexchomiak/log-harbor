@@ -7,8 +7,7 @@ export const LogLine = memo(function LogLine(props: { log: any, index: number })
   const [show, setShow] = useState(false);
   const color = props.log[`${internalFieldKey}containerColor`]
   let tag = "🏷️ " + props.log[`${internalFieldKey}containerName`]
-  let filterInternalFields = true
- 
+  let filterInternalFields = true 
   const entrySortFunc = (a: any, b: any) => {
     const ak = a[0]
         const bk = b[0]
@@ -58,6 +57,9 @@ export const LogLine = memo(function LogLine(props: { log: any, index: number })
       let value = val
       if(key == `${internalFieldKey}time`) {
         value = new Date(val).toISOString()
+      }
+      if(value == undefined) {
+        value = "undefined"
       }
       return (<p className="logLine-fieldTag prevent-select" style={{"background": hashStringDarkToColor(key.replace(internalFieldKey, "@"), value), "margin": "0 0.25rem", "marginBottom": "0.2rem"}}>◆ {key.replace(internalFieldKey, "@")}: {truncateStringPastLength(value.toString(), 24)} </p>)
     })} </div>

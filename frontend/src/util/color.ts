@@ -29,6 +29,10 @@ export function hashStringToColor(str: string) {
 }
 
 export function hashStringDarkToColor(key: string, value: string) {
+    if(key == undefined || value == undefined) {
+        return "#9c9a89"
+    }
+
     if(key == "message" && (value.toLowerCase().includes("exception") || value.toLowerCase().includes("error"))) {
         return "#6b1004"
     }
