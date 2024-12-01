@@ -28,13 +28,36 @@ export function hashStringToColor(str: string) {
     return hslToHex(h, s, l);
 }
 
-export function hashStringDarkToColor(str: string) {
-    const hash = djb2(str);
+export function hashStringDarkToColor(key: string, value: string) {
+    if(key == "message" && (value.toLowerCase().includes("exception") || value.toLowerCase().includes("error"))) {
+        return "#6b1004"
+    }
+    
+    if(key == "message") {
+        return "#0b7a66"
+    }
+
+    if(key == "level" && value.toLowerCase() == "info") {
+        return "#0b8a44"
+    }
+
+    if(key == "level" && value.toLowerCase().includes("err")) {
+        return "#8a0f0b"
+    }
+
+    if(key == "level" && value.toLowerCase().includes("warn")) {
+        return "#8a460b"
+    }
+    if(key == "level" && value.toLowerCase().includes("debug")) {
+        return "#6c8f03"
+    }
+
+    const hash = djb2(key);
 
     // Use the hash to generate HSL values
     const h = Math.abs(hash % 360);       // Hue: 0–359 (full spectrum)
-    const s = 40;                         // Saturation: 70% for vibrancy
-    const l = 40;                         // Lightness: 70% for enhanced brightness
+    const s = 35;                         // Saturation: 70% for vibrancy
+    const l = 20;                         // Lightness: 70% for enhanced brightness
 
     return hslToHex(h, s, l);
 }
