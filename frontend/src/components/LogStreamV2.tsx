@@ -113,7 +113,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
       <div className="logStreamV2" ref={parentRef}>
 
-        <VList ref={boxRef} onScroll={(_) => {
+        <VList className="logStreamList" ref={boxRef} onScroll={(_) => {
           if(tailLogs && lastScroll - boxRef.current.scrollOffset > 0) {
             positiveInARow += 1
             // setTailLogs(false)
@@ -130,7 +130,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
           lastScroll = boxRef.current.scrollOffset
         }}>
         {queriedBuffer.map((log: any, index: number) => (
-          <LogLine key={index} log={log} />
+          <LogLine key={index} index={index} log={log} />
         ))}
           </VList>
         

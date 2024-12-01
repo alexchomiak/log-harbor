@@ -109,9 +109,11 @@ self.onmessage = async function(e) {
                 const timestamp = toks[0]
                 const data = toks.slice(1).join(" ")
     
+                let json = false
                 let fields = {}
                 try {
                     fields = JSON.parse(data)
+                    json = true
                 } catch (e) { }
     
                 const logKey = `${internalFieldKey}log`
@@ -123,6 +125,7 @@ self.onmessage = async function(e) {
                     [`${internalFieldKey}containerColor`]: container.color,
                     [`${internalFieldKey}containerImage`]: container.Config.Image,
                     [`${internalFieldKey}time`]: timestamp,
+                    [`${internalFieldKey}json`]: json,
                 }
                 newMessages.push({ [logKey]: data, [ingestionKey]: new Date(), ...containerFields, ...fields })
             })    

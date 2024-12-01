@@ -27,3 +27,14 @@ export function hashStringToColor(str: string) {
 
     return hslToHex(h, s, l);
 }
+
+export function hashStringDarkToColor(str: string) {
+    const hash = djb2(str);
+
+    // Use the hash to generate HSL values
+    const h = Math.abs(hash % 360);       // Hue: 0–359 (full spectrum)
+    const s = 40;                         // Saturation: 70% for vibrancy
+    const l = 40;                         // Lightness: 70% for enhanced brightness
+
+    return hslToHex(h, s, l);
+}
