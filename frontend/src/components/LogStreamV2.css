@@ -22,26 +22,83 @@
 }
 
 .logLine {
-    padding: 0.8rem 0.2rem;
+    padding: 0.4rem;
     margin: 0;
     font-family: monospace;
     font-weight: 600;
     line-height: 1.2;
     border: 2px solid rgba(69, 4, 62, 0);
+    border-radius: 0.5rem;
+
 }
+
+.logLine-tag {
+    display: inline-block;
+    background-color: #151215;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+}
+
+.logLine-fieldTag {
+    display: inline-block;
+    background-color: #151215;
+    padding: 0.2rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.3rem;
+}
+.expandedLogField {
+    width: 95%;
+    display: flex;
+    margin: 0.2rem;
+    justify-content: center;
+    /* flex-wrap: wrap; */
+}
+.expandedLogFieldKey {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 0.3em;
+    min-width: 15rem !important;
+    border-radius: 0.3rem;
+    margin-right: 1rem;
+    text-align: right;
+    vertical-align: middle;
+}
+
+.expandedLogFieldValue {
+    background-color: #1b1a1b;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 0.3em;
+    border-radius: 0.3rem;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+
+    ::selection {
+        background: red;
+    }
+}
+
+.expandedLogFieldValue::selection {
+    background: #9200be;
+}
+
+.logLine-main {
+    cursor: pointer;
+}
+
 .logLine:hover {
         border: 2px solid #e11bff;
         border-radius: .1rem;
+        border-radius: .5rem;
 }
 
-.expandedLog {
+.expandedLogLine {
     background: #710782 !important;
-
 }
 
 .expandedLogContent {
     margin-left: 1rem;
-
+    cursor: text;
 }
 
 

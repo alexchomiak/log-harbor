@@ -123,7 +123,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
           // * Really hacky way to detect if the user has scrolled up
           // * Since we cannot differentiate between user scroll and programmatic scroll
-          if(positiveInARow > 8) {
+          if(positiveInARow > 2) {
             setTailLogs(false)
           }
           
