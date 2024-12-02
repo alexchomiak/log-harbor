@@ -61,7 +61,7 @@ export const LogLine = memo(function LogLine(props: { log: any, index: number })
       if(value == undefined) {
         value = "undefined"
       }
-      return (<p className="logLine-fieldTag prevent-select" style={{"background": hashStringDarkToColor(key.replace(internalFieldKey, "@"), value), "margin": "0 0.25rem", "marginBottom": "0.2rem"}}>◆ {key.replace(internalFieldKey, "@")}: {truncateStringPastLength(value.toString(), 24)} </p>)
+      return (<p className="logLine-fieldTag prevent-select" style={{"background": hashStringDarkToColor(key.replace(internalFieldKey, "@"), value), "margin": "0 0.25rem", "marginBottom": "0.2rem"}}>◆ {key.replace(internalFieldKey, "@")}: {key != "message" ? truncateStringPastLength(value.toString(), 24) : value.toString()} </p>)
     })} </div>
   }
 
