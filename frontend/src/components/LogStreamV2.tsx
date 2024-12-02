@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { LogLine } from "./LogLine";
 import { Box, Button, Float, Spinner } from "@chakra-ui/react";
 import alasql from "alasql";
@@ -10,7 +10,6 @@ interface LogStreamProps {
   buffer: any
 }
 import { VList } from "virtua";
-
 
 
 
@@ -65,14 +64,30 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
   const tailRef = useRef<any>(null);
   const boxRef = useRef<any>(null);
   const parentRef = useRef<any>(null);
+  const scrollRef = useRef<any>(null);
+  const pctRef = useRef<any>(null)
   const [tailLogs, setTailLogs ] = useState(false)
-  
+
+  const updateScrollBarPosition = () => {
+    const pct = boxRef.current.scrollSize < boxRef.current.viewportSize ? 100 :
+    ((boxRef.current.scrollOffset) / (boxRef.current.scrollSize - boxRef.current.viewportSize))
+    
+    if(isNaN(pct)) {
+      scrollRef.current.style.top = `-100rem`
+
+    } else {
+      scrollRef.current.style.top = `${pct * (boxRef.current.viewportSize - 50)}px`
+    }
+    pctRef.current.innerHTML = `${(pct * 100).toFixed(2)}%`
+  }
+
   let queriedBuffer = buffer
   useEffect(() => {
 
     if(tailLogs) {
       boxRef.current.scrollToIndex(boxRef.current.scrollSize, {smooth: false} )
     }
+    updateScrollBarPosition()
   }, [buffer])
 
   if (props.filterType == "sql" && props.filterExpression.length > 0) {
@@ -93,10 +108,15 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     queriedBuffer = buffer.filter((m: any) => m[`${internalFieldKey}log`].includes(props.filterExpression))
   }
 
+  const logLines = useMemo(() => {
+    return queriedBuffer.map((log: any, index: number) => (
+      <LogLine key={index} index={index} log={log} />
+    ));
+  }, [queriedBuffer])
 
   return (
     <div>
-      <div style={{ "position": "absolute", "width": !tailLogs ? "90%" : "0px","opacity":  !tailLogs ? "1" : "0" ,bottom: "1rem", "transition": "all ease-in-out 500ms","transform": "translate(-50%,0%)", "left": "50%", "zIndex": "100" }}>
+      <div style={{ "position": "absolute", "width": !tailLogs ? "50%" : "0px","opacity":  !tailLogs ? "1" : "0" ,bottom: "1rem", "transition": "all ease-in-out 500ms","transform": "translate(-50%,0%)", "left": "50%", "zIndex": "100" }}>
         <Button onClick={() => {
           let smooth = false
           if(boxRef.current.scrollSize - boxRef.current.scrollOffset - boxRef.current.viewportSize < 5 * boxRef.current.viewportSize) {
@@ -113,14 +133,18 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
 
       <div className="logStreamV2" ref={parentRef}>
 
-        <VList className="logStreamList" ref={boxRef} onScroll={(_) => {
+        <VList className="logStreamList" ref={boxRef} onScrollEnd={() => {
+          scrollRef.current.style.opacity = "0.25"
+          updateScrollBarPosition()
+        }} onScroll={(_) => {
           if(tailLogs && lastScroll - boxRef.current.scrollOffset > 0) {
             positiveInARow += 1
             // setTailLogs(false)
           } else {
             positiveInARow = 0
           }
-
+          scrollRef.current.style.opacity = "0.9"
+          updateScrollBarPosition()
           // * Really hacky way to detect if the user has scrolled up
           // * Since we cannot differentiate between user scroll and programmatic scroll
           if(positiveInARow > 2) {
@@ -129,11 +153,12 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
           
           lastScroll = boxRef.current.scrollOffset
         }}>
-        {queriedBuffer.map((log: any, index: number) => (
-          <LogLine key={index} index={index} log={log} />
-        ))}
+          {logLines}
           </VList>
         
+        <div className="scrollContainer" ref={scrollRef}>
+          <div className="text" ref={pctRef}></div>
+        </div>
         <div ref={tailRef} />
       </div>
     </div>
