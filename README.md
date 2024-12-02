@@ -11,7 +11,7 @@ This project was inspired by [Dozzle](https://github.com/amir20/dozzle). Please 
 
 ## Features
 * Ease of use. Single packaged unit.
-* Light Weight. <5MB Image Size
+* Light Weight. < 5MB Image Size
 * Real time log streaming to core Web Application
 * In Memory Database & SQL Support
   * Logs are streamed into an in-memory IndexedDB database directly in the browser. (up to 16,000 logs per container)
