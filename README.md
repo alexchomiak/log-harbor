@@ -26,11 +26,8 @@ This project was inspired by [Dozzle](https://github.com/amir20/dozzle). Please 
 ## Get Started
 Run Log Harbor on your host with the following command
 ```sh
-docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock alexchomiak/log-harbor:main
+docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock alexchomiak/log-harbor:latest
 ```
-
-## Architecture & Frameworks 
-TODO
 
 ## Feature Roadmap
 * Add support for multiple hosts
