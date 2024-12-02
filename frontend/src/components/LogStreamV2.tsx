@@ -78,7 +78,7 @@ export const LogStreamV2 = memo(function LogStreamV2Comp(props: LogStreamProps) 
     } else {
       scrollRef.current.style.top = `${pct * (boxRef.current.viewportSize - 50)}px`
     }
-    pctRef.current.innerHTML = `${(pct * 100).toFixed(2)}%`
+    pctRef.current.innerHTML = `${(Math.min(pct * 100.0, 100.00)).toFixed(2)}%`
   }
 
   let queriedBuffer = buffer
