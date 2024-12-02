@@ -72,11 +72,16 @@ export const LogLine = memo(function LogLine(props: { log: any, index: number })
     {show && <div className="expandedLogContent">
       {displayFields.map(([key, value]) => (
         <div className="expandedLogField" key={key}>
-            <div style={{"background": hashStringDarkToColor(key.replace(internalFieldKey, "@"), value as string)}} className="expandedLogFieldKey"> 
+            <div style={{"background": hashStringDarkToColor(key, value as string),
+              color: key == `${internalFieldKey}containerColor` ? value as string : "white"
+            }} className="expandedLogFieldKey"> 
               {key.replace(internalFieldKey, "@")}:
             </div> 
             
-            <div className="expandedLogFieldValue" onClick={(e) => {
+            {/* @ts-expect-error allowing for color to fall back to css */}
+            <div className="expandedLogFieldValue" style={
+              key == `${internalFieldKey}containerColor` ? {"color": value} : undefined
+            } onClick={(e) => {
               console.log(e.nativeEvent.target)
               if(window.getSelection()) {
                 const range = document.createRange()

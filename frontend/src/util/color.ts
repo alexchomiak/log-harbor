@@ -1,3 +1,4 @@
+
 function djb2(str: string) {
     let hash = 5381;
     for (let i = 0; i < str.length; i++) {
@@ -56,12 +57,16 @@ export function hashStringDarkToColor(key: string, value: string) {
         return "#6c8f03"
     }
 
+    if(key == `@containerColor`) {
+        return "#1f1f1f"
+    }
+
     const hash = djb2(key);
 
     // Use the hash to generate HSL values
     const h = Math.abs(hash % 360);       // Hue: 0–359 (full spectrum)
     const s = 35;                         // Saturation: 70% for vibrancy
-    const l = 20;                         // Lightness: 70% for enhanced brightness
+    const l = 25;                         // Lightness: 70% for enhanced brightness
 
     return hslToHex(h, s, l);
 }

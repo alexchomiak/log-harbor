@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "./App.css";
-import { Box, Button, Code, Flex, Float, Separator } from "@chakra-ui/react";
+import { Box, Button, Flex, Float, Separator } from "@chakra-ui/react";
 import { StreamView } from "./components/StreamView";
 import { hashStringToColor } from "./util/color";
 import useStateRef from "react-usestateref";
@@ -63,7 +63,7 @@ function App() {
               <h1 style={{ margin: "0rem auto", marginTop: "-1rem", "textAlign": "center", "width": "100%", "fontSize": "1.8rem", "fontWeight": "700", "fontFamily": "Brush Script MT, cursive", "color": "#e817da" }}>Log Harbor</h1>
             </Box>
             
-            <h1 style={{ margin: "1rem auto", "width": "100%", "textAlign": "center", fontWeight: "700" }} color={"white.500"}>🐳 Running Containers</h1>
+            <h1 style={{ margin: "1rem auto", "width": "100%", "textAlign": "center", fontWeight: "700" }} color={"white.500"}>👾 Running Containers</h1>
 
           </Box>
           <Separator />
@@ -71,18 +71,17 @@ function App() {
             {containers.map((c: any) => {
               return (
                 <Box style={{ "margin": "0.2rem" }}>
-                  <Button className="prevent-select" variant={selectedContainers.includes(c) ? "subtle": "solid"}  style={{ "width": "100%", "textWrap": "wrap", "wordBreak": "break-all"}} colorPalette={"purple"} onClick={() => {
+                  <div className={`prevent-select containerBtn ${selectedContainers.includes(c) ? "containerBtn-selected": ""}`}   style={{ "width": "100%", "textWrap": "wrap", "wordBreak": "break-all"}} onClick={() => {
                     if(!selectedContainers.includes(c))
                       setSelectedContainers([...selectedContainers, c])
                     else {
                       setSelectedContainers(selectedContainers.filter((sc: any) => sc != c))
                     }
                   }}>
-                    <Code style={{"color": c.color}}>
+                    <p style={{"color": c.color}}>
                     🏷️ {c.Name}
-
-                    </Code>
-                  </Button>
+                    </p>
+                  </div>
                 </Box>
 
               );
@@ -95,9 +94,8 @@ function App() {
 
         {/* Main Content Area */}
         <Box flex="1" p={4} className="content"  style={{"position": "relative"}}    >
-          {selectedContainers.length > 0 && (
-            <StreamView containers={selectedContainers} />
-          )}
+          <StreamView containers={selectedContainers} />
+
           {selectedContainers.length == 0 && (
             <Float placement="middle-center" style={{width: "100%"}}>
                 🙏 Select a Container to monitor & analyze logs

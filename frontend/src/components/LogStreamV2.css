@@ -27,9 +27,13 @@
     font-family: monospace;
     font-weight: 600;
     line-height: 1.2;
-    border: 2px solid rgba(69, 4, 62, 0);
+    border: 2px solid rgba(69, 4, 63, 0.419);
+    margin-bottom: 0.2rem;
     border-radius: 0.5rem;
+}
 
+.logLine:nth-child(odd) {
+    background: #1f0228;
 }
 
 .logLine-tag {
@@ -72,14 +76,10 @@
     flex-grow: 1;
     flex-wrap: wrap;
     font-size: 0.9rem;
-
-    ::selection {
-        background: red;
-    }
 }
 
 .expandedLogFieldValue::selection {
-    background: #9200be;
+    background: #62017f;
 }
 
 .logLine-main {

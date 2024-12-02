@@ -4,14 +4,14 @@ import "./LogStreamV2.css";
 import AceEditor from "react-ace"
 import { useEffect, useRef, useState } from "react";
 import useStateRef from "react-usestateref";
-import { LogProvider } from "./provider/LogProvider";
-import { containerLogProvider } from "./provider/ContainerLogProvider";
+import { containerLogProvider, internalFieldKey } from "./provider/ContainerLogProvider";
 import { getContainerWorker } from "./provider/WorkerProvider";
 
 interface StreamViewProps {
     containers: any[];
 }
 
+const providerMap: any = {}
 
 export function StreamView(props: StreamViewProps) {
     const { containers } = props;
@@ -33,17 +33,26 @@ export function StreamView(props: StreamViewProps) {
 
     const worker = getContainerWorker()
     useEffect(() => {
-        const providers = containers.map((container) => {
-            return containerLogProvider(container)
+        // * Create New Providers if Needed
+        containers.map((container) => {
+            if(providerMap[container.Id] == undefined) {
+                providerMap[container.Id] = containerLogProvider(container)
+            }
         });
 
-        setBuffer([])
-       
-        return () => {
-            providers.forEach((provider: LogProvider) => {
-                provider.cleanup()
-            })
-        }
+        // * Update Buffer
+        const containerIds = containers.map((c) => c.Id)
+        setBuffer(buffer.filter((log: any) => {
+            return containerIds.includes(log[`${internalFieldKey}containerId`])
+        }))
+
+        // * Cleanup Un Selected Entries
+        Object.entries(providerMap).forEach(([containerId, provider]) => {
+            if(!containerIds.includes(containerId)) {
+                delete providerMap[containerId];
+                (provider as any).cleanup();
+            }
+        })
     }, [containers])
 
     useEffect(() => {
@@ -196,7 +205,10 @@ export function StreamView(props: StreamViewProps) {
         </Box>
 
         <Box position={"relative"} style={{"overflow": "hidden"}}>
+            {containers.length > 0 && (
+               
             <LogStreamV2 buffer={buffer}  filterExpression={filterExpression} filterType={filterType}/>
+            )}
         </Box>
     </Box>
     </div>

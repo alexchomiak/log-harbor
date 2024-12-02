@@ -16,7 +16,7 @@
 .footer {
     min-height: var(--footer-height);
     max-height:  var(--footer-height);
-    background: #09000a;
+    background: #150017;
     border-top: 3px solid purple;
     padding: 0;
 }
@@ -39,7 +39,7 @@
 
 
 .sidebar {
-    background: #100f10;
+    background: #150017;
     padding: 0 !important;
     border-right: 3px solid purple;
     margin: 0;
@@ -92,4 +92,27 @@
 
 }
 
+
+.containerBtn {
+    border-radius: 0 !important;
+    padding: 0.5rem 0.5rem  !important;
+    width: 100% !important;
+    transition: all 0.2s ease-in-out;
+    p {
+        font-size: 0.8rem;
+        background-color: #181818;
+        padding: 0.4rem;
+        border-radius: 0.25rem;
+        display: block;
+        text-align: center;
+    }
+    background-color:rgb(136, 58, 225) !important;
+    cursor: pointer;
+}
+
+.containerBtn-selected {
+    background: #440059 !important;
+    color: brightness(0%) !important;
+    opacity: 0.5;
+}
 
