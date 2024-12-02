@@ -66,6 +66,8 @@
     margin-right: 1rem;
     text-align: right;
     vertical-align: middle;
+    max-width: 15rem !important;
+
 }
 
 .expandedLogFieldValue {
@@ -76,6 +78,9 @@
     flex-grow: 1;
     flex-wrap: wrap;
     font-size: 0.9rem;
+    min-width: 15rem !important;
+
+    word-break: normal;
 }
 
 .expandedLogFieldValue::selection {
