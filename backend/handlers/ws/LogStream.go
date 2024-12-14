@@ -19,6 +19,17 @@ type KeepAliveMessage struct {
 	Interval int64 `json:"interval"`
 }
 
+// Log Stream Handler godoc
+//
+//	@Summary		Attach to Container Log Stream
+//	@Description	This Websocket API attaches to a container's log stream
+//					and streams the logs to the client. The client must send
+//					keep alive messages to the server to maintain the connection.
+//
+// @X-WebSocket true
+// @Tags WebSocket
+//
+//	@Router			/ws/logs/:id [get]
 func LogStreamHandler(c *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

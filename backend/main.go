@@ -6,14 +6,30 @@ import (
 	"log"
 	"os"
 
+	"github.com/gofiber/contrib/swagger"
+
 	"github.com/gofiber/contrib/websocket"
 
 	"github.com/gofiber/fiber/v2"
 )
 
+// @title Log Harbor API
+// @version 1.0
+// @description API Backend for Log Harbor Application
+// @host localhost:3000
+// @BasePath /
 func main() {
 	// Initialize Fiber app
 	app := fiber.New()
+
+	cfg := swagger.Config{
+		BasePath: "/",
+		FilePath: "./docs/swagger.json",
+		Path:     "/",
+		Title:    "Log Harbor API Docs",
+	}
+
+	app.Use(swagger.New(cfg))
 
 	// * Container APIS
 	app.Get("/api/container/list", container.ListRunningContainers)

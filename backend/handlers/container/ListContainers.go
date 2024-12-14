@@ -10,6 +10,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// List Running Containers godoc
+//
+//	@Summary		Lists Running Containers on Host
+//	@Description	This API endpoint lists all running containers leveraging the Docker SDK.
+//	@Tags			containers
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		types.ContainerJSON "List of Running Containers"
+//	@Failure		500	{object}	error
+//	@Router			/api/container/list [get]
 func ListRunningContainers(c *fiber.Ctx) error {
 	// Create a Docker client
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
